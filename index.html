@@ -6,23 +6,22 @@
     <title>Crypto Intelligence Validator</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
+    <script src='//libtl.com/sdk.js' data-zone='10903150' data-sdk='show_10903150'></script>
+
     <style>
         :root { --primary: #0088cc; --bg: #f8f9fa; --text: #333; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; text-align: center; }
         .container { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); max-width: 450px; margin: auto; min-height: 520px; display: flex; flex-direction: column; justify-content: space-between; }
-        .header { font-size: 11px; color: var(--primary); font-weight: bold; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .header { font-size: 11px; color: var(--primary); font-weight: bold; margin-bottom: 8px; text-transform: uppercase; }
         .article-box { text-align: left; font-size: 13px; line-height: 1.5; color: #555; background: #fdfdfd; padding: 12px; border-radius: 8px; border-left: 4px solid var(--primary); margin-bottom: 12px; }
         .interactive-space { background: #f1f4f9; padding: 12px; border-radius: 10px; margin: 10px 0; text-align: left; min-height: 80px; }
         label { font-size: 11px; font-weight: bold; display: block; margin-bottom: 5px; color: #444; }
-        input[type="text"], select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 10px; box-sizing: border-box; background: white; font-size: 13px; }
-        .ad-banner { width: 100%; min-height: 50px; background: #eee; margin: 8px 0; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #999; border: 1px dashed #ccc; }
+        input[type="text"], select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; background: white; font-size: 13px; }
         .btn-next { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; transition: 0.3s; }
         .btn-next:disabled { background: #e0e0e0; color: #888; cursor: not-allowed; }
-        .processing-info { font-size: 12px; color: var(--primary); margin-top: 10px; font-style: italic; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .processing-info { font-size: 12px; color: var(--primary); margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-style: italic; }
         .progress-bar { height: 4px; background: #eee; border-radius: 2px; margin-bottom: 15px; }
         .progress-fill { height: 100%; background: var(--primary); width: 10%; transition: 0.3s; }
-        .dot-flashing { width: 6px; height: 6px; border-radius: 5px; background-color: var(--primary); animation: dotFlashing 1s infinite alternate; }
-        @keyframes dotFlashing { 0% { opacity: 1; } 100% { opacity: 0.1; } }
         .final-code-box { font-size: 26px; font-weight: bold; color: #155724; padding: 20px; border: 3px dashed #28a745; background: #d4edda; margin-top: 10px; letter-spacing: 2px; }
     </style>
 </head>
@@ -33,34 +32,20 @@
     
     <div id="content-area"></div>
 
-    <div class="ad-banner">
-        SPONSORED BANNER TOP
-    </div>
-
     <div id="interactive-area" class="interactive-space"></div>
-
-    <div class="ad-banner">
-        SPONSORED BANNER BOTTOM
-    </div>
 
     <div id="action-area">
         <button id="nextBtn" class="btn-next" onclick="handleNextStep()" disabled>Processing...</button>
         <div id="status-container" class="processing-info">
             <span id="status-text">Handshaking with nodes...</span>
-            <div class="dot-flashing"></div>
         </div>
     </div>
 </div>
 
 <script>
-    // --- منطقة الإعدادات (CONFIG) ---
-    const MY_SECRET_PROOF_CODE = "WORKER-2026-OK"; // الكود الذي سيظهر في النهاية
-    const MY_SMARTLINK_URL = "https://YOUR_SMARTLINK_HERE"; // رابط الـ SmartLink
-    
-    // IDs الإعلانات (استبدل الأرقام بما لديك في Monetag)
-    const REWARDED_ZONE_ID = 1234567; 
-    const INTERSTITIAL_ZONE_ID = 7654321;
-    // --------------------------------
+    // --- Configuration ---
+    const MY_SECRET_PROOF_CODE = "WORKER-2026-OK"; 
+    const MY_SMARTLINK_URL = "https://YOUR_SMARTLINK_HERE"; // ضع هنا رابط السمارت لينك
 
     const tg = window.Telegram.WebApp;
     tg.expand();
@@ -70,36 +55,40 @@
     let timerInterval;
 
     const stages = [
-        { title: "Network Configuration", content: "Establishing a secure data bridge with decentralized validator nodes.", input: '<label>Target Network:</label><select><option>Ethereum Mainnet</option><option>Solana (Fast)</option></select>' },
-        { title: "Hash Integrity", content: "Input a temporary session hash for encryption benchmarking.", input: '<label>Session Hash:</label><input type="text" placeholder="0x...">' },
-        { title: "Protocol Shield", content: "Select the security level for the cross-chain verification layer.", input: '<label>Shield Level:</label><select><option>AES-256</option><option>RSA-4096</option></select>' },
-        { title: "Node Optimization", content: "Adjusting node scanning depth for efficiency.", input: '<label>Node Depth:</label><input type="text" placeholder="Default: 128-bit">' },
-        { title: "Market Depth Audit", content: "Auditing liquidity pairs across decentralized exchanges.", input: '<label>Pair:</label><select><option>BTC/USDT</option><option>ETH/USDC</option></select>' },
-        { title: "Gas Limit Calculation", content: "Estimating Gwei requirements for the transaction.", input: '<label>Gas Limit:</label><input type="text" placeholder="Auto-Detect">' },
-        { title: "Compliance Gateway", content: "Verifying metadata against AML standards.", input: '<label>Region:</label><select><option>International</option><option>EU</option></select>' },
-        { title: "Data Sharding", content: "Selecting the optimal sharding method for code generation.", input: '<label>Method:</label><input type="text" placeholder="Auto">' },
-        { title: "Final Handshake", content: "Connecting to the secure delivery server. Almost there.", input: '<label>Priority:</label><select><option>High Priority</option></select>' },
-        { title: "Success", content: "Validation complete.", input: '' }
+        { title: "Network Check", content: "Selecting blockchain network for data bridge.", input: '<label>Network:</label><select><option>Mainnet</option><option>BSC</option></select>' },
+        { title: "Hash Integrity", content: "Benchmarking session encryption.", input: '<label>Hash:</label><input type="text" placeholder="0x...">' },
+        { title: "Security Layer", content: "Selecting RSA-4096 protocol.", input: '<label>Level:</label><select><option>High Security</option></select>' },
+        { title: "Node Depth", content: "Optimizing proof efficiency.", input: '<label>Depth:</label><input type="text" placeholder="128-bit">' },
+        { title: "Market Depth", content: "Auditing liquidity pools.", input: '<label>Pair:</label><select><option>BTC/USDT</option></select>' },
+        { title: "Gas Calculation", content: "Estimating network fees.", input: '<label>Limit:</label><input type="text" placeholder="Auto">' },
+        { title: "Compliance Check", content: "Verifying global AML standards.", input: '<label>Region:</label><select><option>Global</option></select>' },
+        { title: "Data Sharding", content: "Processing encryption shards.", input: '<label>Method:</label><input type="text" placeholder="Auto">' },
+        { title: "Final Server Link", content: "Connecting to secure delivery gate.", input: '<label>Priority:</label><select><option>Express</option></select>' },
+        { title: "Success", content: "Handshake complete.", input: '' }
     ];
 
-    // دالة استدعاء الإعلانات
+    // نظام إدارة الإعلانات المدمج
     async function triggerAdSystem(step) {
         return new Promise((resolve) => {
-            // توزيع 4 Rewarded Interstitial في الخطوات (2, 4, 6, 8)
-            const isRewardedStep = [2, 4, 6, 8].includes(step);
-
-            if (isRewardedStep) {
-                if (typeof show_8765432 === 'function') { // استبدل باسم دالة Rewarded لديك
-                    show_8765432().then(() => resolve(true)).catch(() => resolve(true));
-                } else { resolve(true); }
+            // توزيع 4 إعلانات Rewarded Interstitial في الخطوات (2, 4, 6, 8)
+            const rewardedSteps = [2, 4, 6, 8];
+            
+            if (rewardedSteps.includes(step)) {
+                show_10903150().then(() => resolve(true)).catch(() => resolve(true));
+            } else if (step === 9 || step === 5) {
+                // Rewarded Popup
+                show_10903150('pop').then(() => resolve(true)).catch(() => resolve(true));
             } else {
-                // بقية الخطوات (6 إعلانات Interstitial)
-                if (typeof show_1234567 === 'function') { // استبدل باسم دالة Interstitial لديك
-                    show_1234567().then(() => resolve(true)).catch(() => resolve(true));
-                } else { resolve(true); }
+                // In-App Interstitial للبقية
+                show_10903150({
+                    type: 'inApp',
+                    inAppSettings: { frequency: 1, capping: 0.1, interval: 10, timeout: 0, everyPage: true }
+                });
+                setTimeout(() => resolve(true), 2000); // تمرير سريع للـ In-App
             }
-            // Safety: إذا علق الإعلان، أكمل بعد 4 ثوانٍ
-            setTimeout(() => resolve(true), 4000);
+            
+            // Timeout احتياطي لضمان استمرارية التطبيق
+            setTimeout(() => resolve(true), 6000);
         });
     }
 
@@ -107,10 +96,10 @@
         const data = stages[step - 1];
         document.getElementById('content-area').innerHTML = `
             <div class="header">PHASE ${step} OF 10</div>
-            <h3 style="margin:5px 0; font-size:16px;">${data.title}</h3>
+            <h3 style="margin:5px 0;">${data.title}</h3>
             <div class="article-box">${data.content}</div>
         `;
-        document.getElementById('interactive-area').innerHTML = data.input || '<p style="font-size:12px; color:green;">Finalizing...</p>';
+        document.getElementById('interactive-area').innerHTML = data.input || '<p style="color:green; font-size:12px;">Validating...</p>';
         document.getElementById('progress').style.width = (step * 10) + "%";
         startStepTimer();
     }
@@ -121,16 +110,14 @@
         const btn = document.getElementById('nextBtn');
         btn.disabled = true;
         btn.innerText = `Processing... (${timeLeft}s)`;
-        document.getElementById('status-container').style.visibility = 'visible';
 
         timerInterval = setInterval(() => {
             timeLeft--;
             btn.innerText = `Processing... (${timeLeft}s)`;
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
-                document.getElementById('status-container').style.visibility = 'hidden';
                 btn.disabled = false;
-                btn.innerText = (currentStep === 9) ? "Generate Final Proof" : "Proceed to Phase " + (currentStep + 1);
+                btn.innerText = (currentStep === 9) ? "Generate Proof" : "Next Phase";
             }
         }, 1000);
     }
@@ -138,22 +125,17 @@
     async function handleNextStep() {
         const btn = document.getElementById('nextBtn');
         btn.disabled = true;
-        btn.innerText = "Loading Security Ad...";
+        btn.innerText = "Loading Ad...";
 
-        // تشغيل نظام الإعلانات الموزع
+        // تشغيل الإعلان المناسب للمرحلة
         await triggerAdSystem(currentStep);
 
-        if (currentStep === 9) {
-            window.open(MY_SMARTLINK_URL, '_blank');
-        }
+        if (currentStep === 9) window.open(MY_SMARTLINK_URL, '_blank');
 
         if (currentStep < 10) {
             currentStep++;
-            if(currentStep === 10) {
-                showFinalCode();
-            } else {
-                renderStep(currentStep);
-            }
+            if(currentStep === 10) showFinalCode();
+            else renderStep(currentStep);
         }
     }
 
@@ -161,14 +143,13 @@
         document.getElementById('main-container').innerHTML = `
             <div class="progress-bar"><div style="width:100%;" class="progress-fill"></div></div>
             <h2 style="color: #28a745; margin-top: 20px;">System Validated!</h2>
-            <div class="article-box">Process complete. Your unique verification code is below:</div>
+            <div class="article-box">Copy your proof code below and submit it to SproutGigs:</div>
             <div class="final-code-box">${MY_SECRET_PROOF_CODE}</div>
-            <p style="font-size: 13px; color: #666; margin-top: 20px;">Submit this to the employer on SproutGigs.</p>
-            <button class="btn-next" onclick="location.reload()">Restart</button>
+            <p style="font-size: 13px; color: #666; margin-top: 20px;">Verification successfully generated for your Telegram session.</p>
+            <button class="btn-next" onclick="location.reload()">Restart Session</button>
         `;
     }
 
-    // إطلاق الصفحة الأولى
     renderStep(1);
 </script>
 </body>
