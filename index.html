@@ -5,26 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crypto Intelligence Validator</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
     <style>
         :root { --primary: #0088cc; --bg: #f8f9fa; --text: #333; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; text-align: center; }
-        .container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); max-width: 450px; margin: auto; min-height: 420px; display: flex; flex-direction: column; justify-content: space-between; }
-        .step-content { display: none; animation: fadeIn 0.5s; }
-        .step-content.active { display: block; }
-        .header { font-size: 14px; color: var(--primary); font-weight: bold; margin-bottom: 15px; }
-        .article-box { text-align: left; font-size: 14px; line-height: 1.6; color: #555; background: #fdfdfd; padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary); min-height: 100px; }
-        .ad-banner { width: 100%; min-height: 50px; background: #eee; margin: 15px 0; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #999; border: 1px dashed #ccc; }
-        .btn-next { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; transition: 0.3s; margin-top: 10px; font-weight: bold; }
-        .btn-next:disabled { background: #e0e0e0; color: #888; cursor: not-allowed; }
-        .processing-info { font-size: 13px; color: var(--primary); margin-top: 12px; font-style: italic; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .progress-bar { height: 4px; background: #eee; border-radius: 2px; margin-bottom: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; text-align: center; }
+        .container { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); max-width: 450px; margin: auto; min-height: 500px; display: flex; flex-direction: column; justify-content: space-between; }
+        .header { font-size: 13px; color: var(--primary); font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
+        .article-box { text-align: left; font-size: 13px; line-height: 1.5; color: #555; background: #fdfdfd; padding: 12px; border-radius: 8px; border-left: 4px solid var(--primary); margin-bottom: 15px; }
+        .interactive-space { background: #f1f4f9; padding: 15px; border-radius: 10px; margin: 10px 0; text-align: left; }
+        label { font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px; color: #444; }
+        input[type="text"], select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 10px; box-sizing: border-box; }
+        .ad-banner { width: 100%; min-height: 50px; background: #eee; margin: 10px 0; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #999; border: 1px dashed #ccc; }
+        .btn-next { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; }
+        .btn-next:disabled { background: #e0e0e0; color: #888; }
+        .processing-info { font-size: 12px; color: var(--primary); margin-top: 10px; font-style: italic; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .progress-bar { height: 4px; background: #eee; margin-bottom: 15px; }
         .progress-fill { height: 100%; background: var(--primary); width: 10%; transition: 0.3s; }
-        
-        /* شكل بسيط للـ Spinner بجانب كلمة Processing */
-        .dot-flashing { position: relative; width: 5px; height: 5px; border-radius: 5px; background-color: var(--primary); color: var(--primary); animation: dotFlashing 1s infinite linear alternate; animation-delay: .5s; }
-        @keyframes dotFlashing { 0% { background-color: var(--primary); } 50%, 100% { background-color: #ebe6ff; } }
+        .dot-flashing { width: 5px; height: 5px; border-radius: 5px; background-color: var(--primary); animation: dotFlashing 1s infinite alternate; }
+        @keyframes dotFlashing { 0% { opacity: 1; } 100% { opacity: 0.2; } }
     </style>
 </head>
 <body>
@@ -32,17 +29,18 @@
 <div class="container">
     <div class="progress-bar"><div id="progress" class="progress-fill"></div></div>
     
-    <div id="content-area">
-        </div>
+    <div id="content-area"></div>
 
-    <div class="ad-banner">
-        PLACE BANNER AD #1 HERE
-    </div>
+    <div class="ad-banner">AD BANNER #1</div>
+
+    <div id="interactive-area" class="interactive-space"></div>
+
+    <div class="ad-banner">AD BANNER #2</div>
 
     <div id="action-area">
         <button id="nextBtn" class="btn-next" onclick="handleNextStep()" disabled>Processing...</button>
         <div id="status-container" class="processing-info">
-            <span id="status-text">Analyzing network data...</span>
+            <span id="status-text">Handshaking...</span>
             <div class="dot-flashing"></div>
         </div>
     </div>
@@ -53,38 +51,31 @@
     tg.expand();
 
     let currentStep = 1;
-    const totalSteps = 10;
-    const waitTime = 30; 
+    const waitTime = 30;
     let timerInterval;
 
     const stages = [
-        { title: "Node Connectivity Check", content: "Establishing secure handshake with decentralized validator nodes. Verifying SSL/TLS certificates for cross-chain data synchronization." },
-        { title: "Hash Integrity Check", content: "Monitoring SHA-256 hash distribution across active shards. Ensuring session integrity and checking for hardware-level bot emulation." },
-        { title: "Wallet Pattern Analysis", content: "Scanning blockchain ledger for address syntax consistency. AI-driven security layers are auditing current smart contract permissions." },
-        { title: "Liquidity Pool Scanning", content: "Aggregating real-time liquidity from Tier-1 exchanges. Verifying market depth and calculating potential slippage for BTC/USDT pairs." },
-        { title: "Gas Fee Optimization", content: "Calculating current Gwei requirements for the Ethereum network. Optimizing priority fees for the final verification code delivery." },
-        { title: "Mempool Congestion Audit", content: "High traffic detected in the Bitcoin Mempool. Adjusting block priority to ensure your proof-of-work is processed by the next miner." },
-        { title: "Global AML Compliance", content: "Cross-referencing session metadata with international anti-money laundering standards. Regulatory filters are being applied to your session." },
-        { title: "Heuristic Contract Audit", content: "Performing a simulated smart contract audit on temporary memory blocks. Ensuring unique code generation based on your Telegram ID." },
-        { title: "High-Priority Handshake", content: "Finalizing direct handshake with the verification server. Activating security gateway for proof delivery." },
-        { title: "Proof Generation Success", content: "Your unique verification code is ready. Submit it to the SproutGigs employer to complete your task." }
+        { title: "Network Selection", content: "Select the primary blockchain network to begin the synchronization process.", input: '<label>Primary Network:</label><select><option>Mainnet (Default)</option><option>Testnet Ropsten</option><option>BSC Smart Chain</option></select>' },
+        { title: "Wallet Hash Entry", content: "Enter a public wallet address or session hash to start the heuristic audit.", input: '<label>Public Hash:</label><input type="text" placeholder="0x... or Session ID">' },
+        { title: "Security Protocol", content: "Choose the encryption standard for your proof-of-work generation.", input: '<label>Encryption Type:</label><select><option>AES-256 (High)</option><option>RSA-4096 (Secure)</option></select>' },
+        { title: "Node Optimization", content: "Adjust the node scanning depth for faster packet verification.", input: '<label>Scanning Depth:</label><input type="text" placeholder="Default: 64-bit">' },
+        { title: "Liquidity Analysis", content: "Define the pair you want to verify against the central liquidity pool.", input: '<label>Pair Selection:</label><select><option>BTC/USDT</option><option>ETH/USDT</option><option>SOL/USDC</option></select>' },
+        { title: "Gas Limit Setup", content: "Set a temporary gas limit for on-chain data retrieval.", input: '<label>Gas Limit (Gwei):</label><input type="text" placeholder="e.g. 21000">' },
+        { title: "Compliance Check", content: "Confirm your residency status for global AML regulation compliance.", input: '<label>Region:</label><select><option>European Union</option><option>North America</option><option>International</option></select>' },
+        { title: "Sharding Method", content: "Select the data sharding method for final proof encryption.", input: '<label>Sharding Protocol:</label><input type="text" placeholder="Auto-Detect">' },
+        { title: "Gateway Validation", content: "The system is ready to open the secure gateway. Click the button below after the processing ends.", input: '<label>Gateway Priority:</label><select><option>High Priority</option></select>' },
+        { title: "Success", content: "Verification complete. Your unique code is ready.", input: '' }
     ];
 
     function renderStep(step) {
         const data = stages[step - 1];
-        const html = `
-            <div class="step-content active">
-                <div class="header">SYSTEM ANALYSIS: PHASE ${step}</div>
-                <h3 style="margin: 10px 0;">${data.title}</h3>
-                <div class="article-box">${data.content}</div>
-                <div class="ad-banner">
-                    PLACE BANNER AD #2 HERE
-                </div>
-            </div>
+        document.getElementById('content-area').innerHTML = `
+            <div class="header">SYSTEM ANALYSIS: PHASE ${step}</div>
+            <h3 style="margin:5px 0;">${data.title}</h3>
+            <div class="article-box">${data.content}</div>
         `;
-        document.getElementById('content-area').innerHTML = html;
+        document.getElementById('interactive-area').innerHTML = data.input || '<p style="font-size:12px">Analysis in progress...</p>';
         document.getElementById('progress').style.width = (step * 10) + "%";
-        
         startStepTimer();
     }
 
@@ -93,64 +84,39 @@
         let timeLeft = waitTime;
         const btn = document.getElementById('nextBtn');
         const statusText = document.getElementById('status-text');
-        
         btn.disabled = true;
         btn.innerText = `Processing... (${timeLeft}s)`;
-        statusText.innerText = "Syncing with blockchain...";
 
         timerInterval = setInterval(() => {
             timeLeft--;
             btn.innerText = `Processing... (${timeLeft}s)`;
-
-            if (timeLeft <= 10) statusText.innerText = "Finalizing encryption...";
-            else if (timeLeft <= 20) statusText.innerText = "Verifying data packets...";
-
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
                 document.getElementById('status-container').style.visibility = 'hidden';
                 btn.disabled = false;
-                btn.innerText = (currentStep === totalSteps - 1) ? "Final Verification" : "Continue to Phase " + (currentStep + 1);
+                btn.innerText = (currentStep === 9) ? "Final Verification" : "Next Phase";
             }
         }, 1000);
     }
 
     function handleNextStep() {
-        // إذا كان لديك كود إعلان منبثق Interstitial استدعه هنا
-        if(typeof showMonetagInterstitial === 'function') {
-            showMonetagInterstitial();
-        }
-
-        // في المرحلة 9 يفتح الـ SmartLink لزيادة الربح
         if (currentStep === 9) {
-            window.open('https://YOUR_SMARTLINK_URL_HERE', '_blank');
+            window.open('https://YOUR_SMARTLINK_URL', '_blank');
         }
-
-        if (currentStep < totalSteps) {
+        if (currentStep < 10) {
             currentStep++;
             document.getElementById('status-container').style.visibility = 'visible';
-            renderStep(currentStep);
+            if(currentStep === 10) showFinalCode();
+            else renderStep(currentStep);
         }
     }
 
     function showFinalCode() {
         const uniqueCode = "CP-" + Math.floor(Math.random() * 90000 + 10000);
-        document.getElementById('content-area').innerHTML = `
-            <div class="step-content active">
-                <h2 style="color: green;">Handshake Successful!</h2>
-                <p>Your unique SproutGigs verification code:</p>
-                <div style="font-size: 28px; font-weight: bold; padding: 20px; border: 2px dashed var(--primary); background: #f0f8ff;">
-                    ${uniqueCode}
-                </div>
-                <p style="font-size: 12px; color: #666; margin-top: 15px;">Copy the code and submit it to the employer.</p>
-            </div>
-        `;
-        document.getElementById('action-area').style.display = 'none';
+        document.getElementById('container-main').innerHTML = `<h2>Success!</h2><div class="article-box">${uniqueCode}</div>`;
     }
 
-    // تشغيل المرحلة الأولى عند الفتح
     renderStep(1);
-
 </script>
-
 </body>
 </html>
