@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crypto Intelligence Validator</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <script src='//libtl.com/sdk.js' data-zone='10903150' data-sdk='show_10903150'></script>
+
     <style>
         :root { --primary: #0088cc; --bg: #f8f9fa; --text: #333; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; text-align: center; }
@@ -32,36 +35,35 @@
     
     <div id="content-area"></div>
 
-    <div class="ad-banner">
-        AD BANNER #1
-    </div>
+    <div class="ad-banner">PLACE BANNER AD #1</div>
 
     <div id="interactive-area" class="interactive-space"></div>
 
-    <div class="ad-banner">
-        AD BANNER #2
-    </div>
+    <div class="ad-banner">PLACE BANNER AD #2</div>
 
     <div id="action-area">
         <button id="nextBtn" class="btn-next" onclick="handleNextStep()" disabled>Processing...</button>
         <div id="status-container" class="processing-info">
-            <span id="status-text">Handshaking with nodes...</span>
+            <span id="status-text">Synchronizing with nodes...</span>
             <div class="dot-flashing"></div>
         </div>
     </div>
 </div>
 
 <script>
-    // --- CONFIGURATION ZONE ---
-    // Change your proof code here whenever you want
+    // --- CONFIGURATION ---
     const MY_SECRET_PROOF_CODE = "WORKER-2026-X"; 
-    
-    // Change your SmartLink URL here
     const MY_SMARTLINK_URL = "https://YOUR_SMARTLINK_HERE";
-    // --------------------------
+    // ---------------------
 
     const tg = window.Telegram.WebApp;
     tg.expand();
+
+    // 1. Initialize In-App Interstitial (Automatic)
+    show_10903150({
+      type: 'inApp',
+      inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 5, everyPage: false }
+    });
 
     let currentStep = 1;
     const totalSteps = 10;
@@ -69,16 +71,16 @@
     let timerInterval;
 
     const stages = [
-        { title: "Network Configuration", content: "Select your preferred blockchain network to establish a secure data bridge.", input: '<label>Target Network:</label><select><option>Ethereum Mainnet</option><option>Solana (Fast)</option><option>Polygon Bridge</option></select>' },
-        { title: "Hash Integrity", content: "Input a temporary session hash or public wallet ID for encryption benchmarking.", input: '<label>Session Hash:</label><input type="text" placeholder="0x... or Session_UID">' },
-        { title: "Protocol Shield", content: "Choose the security protocol level for the cross-chain verification layer.", input: '<label>Shield Level:</label><select><option>Standard AES</option><option>Enhanced RSA-4096</option></select>' },
-        { title: "Node Synchronization", content: "Adjusting the depth of node scanning to optimize proof-of-work efficiency.", input: '<label>Node Depth:</label><input type="text" placeholder="Default: 128-bit">' },
-        { title: "Market Depth Audit", content: "The system is auditing liquidity pairs across decentralized exchanges (DEX).", input: '<label>Trading Pair:</label><select><option>BTC/USDT</option><option>ETH/USDC</option><option>BNB/BUSD</option></select>' },
-        { title: "Gas Limit Calculation", content: "Estimating Gwei requirements based on current mempool congestion levels.", input: '<label>Gas Limit:</label><input type="text" placeholder="Auto-Calculate (Gwei)">' },
-        { title: "Compliance Gateway", content: "Verifying session metadata against global regulatory anti-money laundering standards.", input: '<label>Compliance Region:</label><select><option>Global / International</option><option>EU Standards</option></select>' },
-        { title: "Data Sharding", content: "Selecting the optimal sharding method for high-speed verification code generation.", input: '<label>Sharding Logic:</label><input type="text" placeholder="Auto-Detect Method">' },
-        { title: "Final Handshake", content: "Establishing a direct link to the secure proof delivery server. Final check in progress.", input: '<label>Gateway Priority:</label><select><option>Express Delivery</option></select>' },
-        { title: "Verification Success", content: "The system has successfully generated your unique verification code.", input: '' }
+        { title: "Network Setup", content: "Initializing secure data bridge with decentralised nodes.", input: '<label>Chain Selection:</label><select><option>Mainnet</option><option>Polygon</option></select>' },
+        { title: "Hash Audit", content: "Benchmarking session hash for encryption layers.", input: '<label>Session Hash:</label><input type="text" placeholder="0x...">' },
+        { title: "Protocol Check", content: "Selecting RSA-4096 security handshake.", input: '<label>Security:</label><select><option>High Priority</option></select>' },
+        { title: "Node Sync", content: "Optimizing proof-of-work efficiency.", input: '<label>Depth:</label><input type="text" placeholder="128-bit">' },
+        { title: "Market Depth", content: "Auditing liquidity across DEX pairs.", input: '<label>Pair:</label><select><option>BTC/USDT</option></select>' },
+        { title: "Gas Calculation", content: "Estimating Gwei for on-chain verification.", input: '<label>Gas Limit:</label><input type="text" placeholder="Auto">' },
+        { title: "AML Compliance", content: "Verifying metadata against global standards.", input: '<label>Region:</label><select><option>International</option></select>' },
+        { title: "Data Sharding", content: "Applying sharding logic for code generation.", input: '<label>Method:</label><input type="text" placeholder="Auto-Detect">' },
+        { title: "Final Handshake", content: "Opening secure gateway for proof delivery.", input: '<label>Priority:</label><select><option>High</option></select>' },
+        { title: "Success", content: "System validated. Code generated.", input: '' }
     ];
 
     function renderStep(step) {
@@ -88,7 +90,7 @@
             <h3 style="margin:5px 0;">${data.title}</h3>
             <div class="article-box">${data.content}</div>
         `;
-        document.getElementById('interactive-area').innerHTML = data.input || '<p style="font-size:12px; color:green;">Process finished successfully.</p>';
+        document.getElementById('interactive-area').innerHTML = data.input || '<p style="font-size:12px; color:green;">Ready.</p>';
         document.getElementById('progress').style.width = (step * 10) + "%";
         startStepTimer();
     }
@@ -113,31 +115,38 @@
         }, 1000);
     }
 
-    function handleNextStep() {
-        if (currentStep === 9) {
-            window.open(MY_SMARTLINK_URL, '_blank');
+    async function handleNextStep() {
+        const btn = document.getElementById('nextBtn');
+        btn.disabled = true;
+        btn.innerText = "Verifying Ad...";
+
+        try {
+            // Logic for Ad display based on step
+            if (currentStep === 3 || currentStep === 6 || currentStep === 8) {
+                await show_10903150(); // Rewarded Interstitial
+            } else if (currentStep === 9) {
+                await show_10903150('pop'); // Rewarded Popup
+                window.open(MY_SMARTLINK_URL, '_blank');
+            }
+        } catch (e) {
+            console.log("Ad skipped or error, but continuing flow.");
         }
 
         if (currentStep < 10) {
             currentStep++;
-            if(currentStep === 10) {
-                showFinalCode();
-            } else {
-                renderStep(currentStep);
-            }
+            if(currentStep === 10) showFinalCode();
+            else renderStep(currentStep);
         }
     }
 
     function showFinalCode() {
         document.getElementById('main-container').innerHTML = `
             <div class="progress-bar"><div style="width:100%;" class="progress-fill"></div></div>
-            <h2 style="color: #28a745; margin-top: 20px;">System Validated!</h2>
-            <div class="article-box">The encryption process is complete. Your verification code for SproutGigs is below.</div>
+            <h2 style="color: #28a745; margin-top: 20px;">Validated!</h2>
+            <div class="article-box">Proof code for SproutGigs generated successfully.</div>
             <div class="final-code-box">${MY_SECRET_PROOF_CODE}</div>
-            <p style="font-size: 13px; color: #666; margin-top: 20px;">
-                Copy this code and paste it back into the job proof section.
-            </p>
-            <button class="btn-next" onclick="location.reload()">Restart Session</button>
+            <p style="font-size: 12px; color: #666; margin-top: 20px;">Submit this code to complete the task.</p>
+            <button class="btn-next" onclick="location.reload()">Reset Session</button>
         `;
     }
 
