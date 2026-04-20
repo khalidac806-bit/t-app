@@ -1,94 +1,149 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify App</title>
+    <title>Crypto Intelligence Validator</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #e9ecef; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; }
-        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
-        .step { display: none; }
-        .active { display: block; }
-        .btn { background: #0088cc; color: white; border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 18px; margin-top: 20px; transition: 0.3s; }
-        .btn:disabled { background: #ccc; }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        :root { --primary: #0088cc; --bg: #f8f9fa; --text: #333; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; text-align: center; }
+        .container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); max-width: 450px; margin: auto; min-height: 400px; display: flex; flex-direction: column; justify-content: space-between; }
+        .step-content { display: none; animation: fadeIn 0.5s; }
+        .step-content.active { display: block; }
+        .header { font-size: 14px; color: var(--primary); font-weight: bold; margin-bottom: 15px; }
+        .article-box { text-align: left; font-size: 14px; line-height: 1.6; color: #555; background: #fdfdfd; padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary); }
+        .ad-banner { width: 100%; min-height: 50px; background: #eee; margin: 15px 0; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #999; border: 1px dashed #ccc; }
+        .btn-next { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; transition: 0.3s; margin-top: 10px; }
+        .btn-next:disabled { background: #ccc; cursor: not-allowed; }
+        .timer-text { font-size: 12px; color: #e74c3c; margin-top: 8px; font-weight: bold; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .progress-bar { height: 4px; background: #eee; border-radius: 2px; margin-bottom: 20px; }
+        .progress-fill { height: 100%; background: var(--primary); width: 10%; transition: 0.3s; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="step1" class="step active">
-        <h2>التحقق من الاتصال</h2>
-        <p>نحن نتأكد من جودة اتصالك بالخادم...</p>
-        <div class="loader"></div>
-        <button class="btn" onclick="goToStep(2)">متابعة</button>
+    <div class="progress-bar"><div id="progress" class="progress-fill"></div></div>
+    
+    <div id="content-area">
+        </div>
+
+    <div class="ad-banner">
+        ADVERTISEMENT 1 (BANNER)
     </div>
 
-    <div id="step2" class="step">
-        <h2>توليد المفتاح</h2>
-        <p>انتظر حتى ينتهي التشفير للحصول على الكود.</p>
-        <div id="timer" style="font-size: 24px; color: red; margin: 20px 0;">15</div>
-        <button id="nextBtn2" class="btn" disabled onclick="goToStep(3)">الخطوة التالية</button>
-    </div>
-
-    <div id="step3" class="step">
-        <h2>الخطوة الأخيرة</h2>
-        <p>يجب عليك زيارة خادم التحقق الخارجي لمرة واحدة.</p>
-        <button class="btn" style="background: #28a745;" onclick="openAdLink()">فتح خادم التحقق</button>
-        <button class="btn" onclick="goToStep(4)">لقد انتهيت، أظهر الك code</button>
-    </div>
-
-    <div id="step4" class="step">
-        <h2>مبروك!</h2>
-        <p>كود الإثبات الخاص بك هو:</p>
-        <div id="finalCode" style="background: #eee; padding: 15px; border: 2px dashed #0088cc; font-size: 22px; font-weight: bold;"></div>
-        <p style="font-size: 12px;">انسخ الكود وأرسله في SproutGigs.</p>
+    <div id="action-area">
+        <button id="nextBtn" class="btn-next" onclick="handleNextStep()" disabled>Wait 30s...</button>
+        <div id="timer" class="timer-text">Wait 30 seconds to proceed</div>
     </div>
 </div>
 
 <script>
     const tg = window.Telegram.WebApp;
-    tg.expand(); // فتح التطبيق بملء الشاشة
+    tg.expand();
 
-    function goToStep(stepNum) {
-        // إخفاء كل الخطوات
-        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-        // إظهار الخطوة المطلوبة
-        document.getElementById('step' + stepNum).classList.add('active');
+    let currentStep = 1;
+    const totalSteps = 10;
+    const waitTime = 30; // 30 Seconds
+    let timerInterval;
 
-        if(stepNum === 2) {
-            startTimer();
-        }
-        if(stepNum === 4) {
-            // توليد كود عشوائي لزيادة المصداقية
-            const randomCode = "ST-" + Math.floor(Math.random() * 90000 + 10000);
-            document.getElementById('finalCode').innerText = randomCode;
-        }
+    const stages = [
+        { title: "Node Connectivity Check", content: "Initializing handshake with decentralized nodes. Verifying SSL certificates for cross-chain communication. Please wait for the secure channel to stabilize." },
+        { title: "Hash Rate Validation", content: "Monitoring real-time SHA-256 hash distribution. Your device is performing a light-weight integrity check to ensure no bot activity is present on this session." },
+        { title: "Wallet Syntax Analysis", content: "Analyzing wallet address patterns for AI-driven security. Our algorithm is scanning for potential vulnerabilities in current smart contract implementations." },
+        { title: "Market Depth Scanning", content: "Aggregating liquidity data from top exchanges (Binance, Coinbase, Kraken). Checking for price slippage and arbitrage opportunities in the BTC/USDT pair." },
+        { title: "Gas Fee Optimization", content: "Calculating current Ethereum Gwei levels. Our tool is finding the most cost-effective time for you to perform on-chain transactions." },
+        { title: "Mempool Congestion Report", content: "The Bitcoin Mempool is currently showing high activity. Validating transaction priority levels to ensure your code generation is prioritized." },
+        { title: "Regulatory Compliance Filter", content: "Cross-referencing session ID with global AML (Anti-Money Laundering) standards. No suspicious activity detected. Proceeding to final verification layers." },
+        { title: "Smart Contract Audit (Simulated)", content: "Running a heuristic analysis on temporary code blocks. Ensuring that the final proof code is unique to your Telegram User ID." },
+        { title: "Direct Server Handshake", content: "Connecting to the high-priority verification server. This step requires a full-screen display of the security protocol (External Ad Check)." },
+        { title: "Final Proof Generation", content: "Success! Your unique SproutGigs verification code has been generated. Copy the code below and submit it to the employer." }
+    ];
+
+    function renderStep(step) {
+        const data = stages[step - 1];
+        const html = `
+            <div class="step-content active">
+                <div class="header">STAGE ${step} of ${totalSteps}</div>
+                <h3>${data.title}</h3>
+                <div class="article-box">${data.content}</div>
+                <div class="ad-banner">
+                    ADVERTISEMENT 2 (BANNER)
+                </div>
+            </div>
+        `;
+        document.getElementById('content-area').innerHTML = html;
+        document.getElementById('progress').style.width = (step * 10) + "%";
+        
+        startStepTimer();
     }
 
-    function startTimer() {
-        let count = 15;
-        const timerDiv = document.getElementById('timer');
-        const btn = document.getElementById('nextBtn2');
-        const interval = setInterval(() => {
-            count--;
-            timerDiv.innerText = count;
-            if(count <= 0) {
-                clearInterval(interval);
-                timerDiv.style.display = 'none';
+    function startStepTimer() {
+        clearInterval(timerInterval);
+        let timeLeft = waitTime;
+        const btn = document.getElementById('nextBtn');
+        const timerText = document.getElementById('timer');
+        
+        btn.disabled = true;
+        btn.innerText = `Wait ${timeLeft}s...`;
+        timerText.innerText = `You must stay on this page for ${timeLeft} seconds`;
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            btn.innerText = `Wait ${timeLeft}s...`;
+            timerText.innerText = `You must stay on this page for ${timeLeft} seconds`;
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
                 btn.disabled = false;
-                btn.innerText = "استمرار";
+                btn.innerText = (currentStep === totalSteps - 1) ? "Final Verification" : "Continue to Next Stage";
+                timerText.innerText = "You can now proceed!";
             }
         }, 1000);
     }
 
-    function openAdLink() {
-        // ضع رابط الـ SmartLink من Monetag هنا
-        window.open('https://your-smartlink-url.com', '_blank');
+    function handleNextStep() {
+        // TRIGGER MONETAG INTERSTITIAL HERE
+        if(typeof showMonetagInterstitial === 'function') {
+            showMonetagInterstitial();
+        }
+
+        if (currentStep === 9) {
+            // OPTIONAL: Open SmartLink in step 9 for maximum profit
+            window.open('https://YOUR_SMARTLINK_URL_HERE', '_blank');
+        }
+
+        if (currentStep < totalSteps) {
+            currentStep++;
+            renderStep(currentStep);
+            
+            if (currentStep === totalSteps) {
+                showFinalCode();
+            }
+        }
     }
+
+    function showFinalCode() {
+        const uniqueCode = "CP-" + Math.floor(Math.random() * 90000 + 10000);
+        document.getElementById('content-area').innerHTML = `
+            <div class="step-content active">
+                <h2 style="color: green;">Verification Complete!</h2>
+                <p>Your unique SproutGigs proof code:</p>
+                <div style="font-size: 28px; font-weight: bold; padding: 20px; border: 2px dashed var(--primary); background: #f0f8ff;">
+                    ${uniqueCode}
+                </div>
+                <p style="font-size: 12px; color: #666; margin-top: 15px;">Copy this code and submit it back to the job page.</p>
+            </div>
+        `;
+        document.getElementById('action-area').style.display = 'none';
+    }
+
+    // Start Stage 1
+    renderStep(1);
+
 </script>
 
 </body>
